@@ -210,8 +210,8 @@ async def get_status():
         "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o"),
         "local_model_path": local_path,
         "providers": {
-            "openai": {"available": openai_ok, "description": "OpenAI GPT-4o (requires OPENAI_API_KEY)"},
-            "google": {"available": gemini_ok, "description": "Google Gemini-1.5-Flash (requires GEMINI_API_KEY)"},
+            # "openai": {"available": openai_ok, "description": "OpenAI GPT-4o (requires OPENAI_API_KEY)"},
+            # "google": {"available": gemini_ok, "description": "Google Gemini-1.5-Flash (requires GEMINI_API_KEY)"},
             "local": {"available": local_ok, "description": "Phi-3 GGUF model via llama-cpp (requires GGUF file)"},
             "mock": {"available": True, "description": "Mock ReAct loop simulation (Always available, no setup needed)"}
         }

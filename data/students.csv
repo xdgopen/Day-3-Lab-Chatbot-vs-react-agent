@@ -1,4 +1,4 @@
-student_id,name,email,points,subject,date_updated
+﻿student_id,name,email,points,subject,date_updated
 S001,Alice Johnson,alice.johnson@school.edu,92,Mathematics,2024-12-10
 S002,Bob Smith,bob.smith@school.edu,78,Mathematics,2024-12-09
 S003,Charlie Brown,charlie.brown@school.edu,85,Physics,2024-12-10

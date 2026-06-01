@@ -8,6 +8,7 @@ import json
 from pathlib import Path
 from typing import Dict, List, Any
 from datetime import datetime
+from src.telemetry.logger import logger
 
 
 # Path to student data CSV
@@ -24,7 +25,7 @@ def load_students() -> List[Dict[str, Any]]:
         raise FileNotFoundError(f"Student data CSV not found at {CSV_PATH}")
     
     students = []
-    with open(CSV_PATH, 'r') as f:
+    with open(CSV_PATH, mode="r", encoding="utf-8-sig", newline="") as f:
         reader = csv.DictReader(f)
         for row in reader:
             # Convert points to int if available, keep None otherwise
@@ -49,11 +50,19 @@ def search_student(name: str) -> Dict[str, Any]:
     
     try:
         students = load_students()
+
+        logger.log_event("RAW STUDENT", {
+            'result': students
+        })
         name_lower = name.lower().strip()
         matches = [
             s for s in students
             if name_lower in s['name'].lower()
         ]
+
+        logger.log_event("RAW RESULT", {
+            'result': matches
+        })
         
         if not matches:
             return {
