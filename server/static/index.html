@@ -1,0 +1,999 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ReAct Agent Explorer Workspace</title>
+    <!-- Premium Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Design Tokens & Theme Variables */
+        :root {
+            --bg-base: #0a0e17;
+            --bg-surface: rgba(17, 24, 39, 0.7);
+            --bg-card: rgba(30, 41, 59, 0.45);
+            --border-glass: rgba(255, 255, 255, 0.08);
+            --border-glass-focus: rgba(99, 102, 241, 0.4);
+            
+            --color-primary: #6366f1; /* Indigo */
+            --color-primary-glow: rgba(99, 102, 241, 0.15);
+            --color-success: #10b981; /* Emerald */
+            --color-success-glow: rgba(16, 185, 129, 0.1);
+            --color-warning: #f59e0b; /* Amber */
+            --color-danger: #ef4444; /* Rose */
+            
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --text-dim: #6b7280;
+            
+            --transition-smooth: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow-premium: 0 10px 30px -10px rgba(0, 0, 0, 0.5), 0 1px 1px 0 rgba(255, 255, 255, 0.05) inset;
+        }
+
+        /* Base Reset */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(16, 185, 129, 0.05) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        /* Layout Grid */
+        .app-container {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Sidebar Styling */
+        aside.sidebar {
+            background: rgba(13, 18, 30, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid var(--border-glass);
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            height: 100vh;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icon {
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, var(--color-primary), #4f46e5);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .logo-title h1 {
+            font-size: 1.15rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            background: linear-gradient(to right, #ffffff, #c7d2fe);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .sidebar-section {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .sidebar-section h3 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+
+        /* Control Inputs */
+        .select-wrapper {
+            position: relative;
+        }
+
+        select, input[type="range"] {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-glass);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition-smooth);
+            cursor: pointer;
+            appearance: none;
+        }
+
+        select:focus {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 0 3px var(--color-primary-glow);
+        }
+
+        .select-wrapper::after {
+            content: '▼';
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+        }
+
+        /* Slider Controls */
+        .slider-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 0.5rem;
+        }
+
+        input[type="range"] {
+            padding: 0;
+            height: 6px;
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--color-primary);
+            box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+            transition: var(--transition-smooth);
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Provider Indicators */
+        .provider-status-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .provider-status-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0.8rem;
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-glass);
+            border-radius: 6px;
+            font-size: 0.8rem;
+        }
+
+        .provider-name-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--text-dim);
+            box-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+        }
+
+        .status-dot.active {
+            background-color: var(--color-success);
+            box-shadow: 0 0 8px var(--color-success);
+            animation: pulse-emerald 2s infinite;
+        }
+
+        .status-dot.warning {
+            background-color: var(--color-warning);
+            box-shadow: 0 0 8px var(--color-warning);
+        }
+
+        /* Main Workspace */
+        main.main-content {
+            padding: 2.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+            max-height: 100vh;
+            overflow-y: auto;
+        }
+
+        .welcome-header {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .welcome-header h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .welcome-header p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* Quickchips */
+        .quick-chips-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+        }
+
+        .quick-chips-container span {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        .chips-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .chip {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            padding: 0.5rem 0.9rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+        }
+
+        .chip:hover {
+            border-color: var(--color-primary);
+            color: var(--text-main);
+            background: var(--color-primary-glow);
+            transform: translateY(-1px);
+        }
+
+        /* Interactive Area */
+        .search-console {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glass);
+            border-radius: 12px;
+            padding: 0.75rem;
+            display: flex;
+            gap: 0.75rem;
+            box-shadow: var(--shadow-premium);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: var(--transition-smooth);
+        }
+
+        .search-console:focus-within {
+            border-color: var(--color-primary);
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
+        }
+
+        .search-console input[type="text"] {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 1rem;
+            padding: 0.5rem;
+        }
+
+        .search-console input[type="text"]::placeholder {
+            color: var(--text-dim);
+        }
+
+        .search-btn {
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            outline: none;
+            padding: 0.6rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .search-btn:hover {
+            background: #4f46e5;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+            transform: translateY(-1px);
+        }
+
+        /* Workspace Grid Output */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 1fr 340px;
+            gap: 2rem;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* Timeline and Response Cards */
+        .response-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            overflow-y: auto;
+            padding-right: 0.5rem;
+        }
+
+        /* Structured ReAct Steps */
+        .step-timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            position: relative;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 0.5rem;
+        }
+
+        .step-badge {
+            background: var(--color-primary-glow);
+            color: #a5b4fc;
+            padding: 0.2rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .step-duration {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Agent Thought block */
+        .thought-block {
+            display: flex;
+            gap: 0.75rem;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        .thought-icon {
+            font-size: 1.2rem;
+            filter: drop-shadow(0 0 5px rgba(245, 158, 11, 0.5));
+        }
+
+        .thought-text {
+            color: #d1d5db;
+        }
+
+        /* Tool Execution Card */
+        .action-block {
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px dashed rgba(16, 185, 129, 0.3);
+            border-radius: 6px;
+            padding: 0.75rem 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .action-block.parse-error {
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        .action-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--color-success);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .action-label.parse-error {
+            color: var(--color-danger);
+        }
+
+        .action-call {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #34d399;
+        }
+
+        .action-call.parse-error {
+            color: #fca5a5;
+        }
+
+        /* Tool Result Observation Card */
+        .observation-block {
+            background: rgba(30, 41, 59, 0.5);
+            border-left: 3px solid #6b7280;
+            padding: 0.75rem 1rem;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .observation-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.4rem;
+        }
+
+        .observation-result {
+            font-family: 'Fira Code', monospace;
+            font-size: 0.85rem;
+            color: #e5e7eb;
+            white-space: pre-wrap;
+        }
+
+        /* Final Answer Card */
+        .final-answer-card {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(30, 41, 59, 0.45) 100%);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.05);
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            animation: scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        .final-answer-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: var(--color-success);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .final-answer-body {
+            font-size: 1.1rem;
+            font-weight: 500;
+            line-height: 1.6;
+            color: #f0fdf4;
+        }
+
+        /* Loading Animation */
+        .agent-loader {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem;
+            gap: 1rem;
+            color: var(--text-muted);
+            background: var(--bg-card);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(99, 102, 241, 0.15);
+            border-top: 3px solid var(--color-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        /* Telemetry Right Panel */
+        .telemetry-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1rem;
+        }
+
+        .metric-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border-glass);
+            border-radius: 10px;
+            padding: 1.25rem;
+            box-shadow: var(--shadow-premium);
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .metric-card-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            color: var(--text-dim);
+            letter-spacing: 0.05em;
+        }
+
+        .metric-card-value {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--text-main);
+        }
+
+        .metric-card-value span {
+            font-size: 0.85rem;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-left: 0.25rem;
+        }
+
+        /* Keyframes */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse-emerald {
+            0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.6); }
+            50% { box-shadow: 0 0 16px rgba(16, 185, 129, 0.9); }
+        }
+
+        @keyframes slide-up {
+            from {
+                opacity: 0;
+                transform: translateY(15px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes scale-in {
+            from {
+                opacity: 0;
+                transform: scale(0.97);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Empty state placeholder */
+        .empty-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 2rem;
+            text-align: center;
+            color: var(--text-dim);
+            border: 1px dashed var(--border-glass);
+            border-radius: 12px;
+            gap: 1rem;
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            opacity: 0.4;
+        }
+
+        .empty-placeholder h3 {
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .app-container {
+                grid-template-columns: 1fr;
+            }
+            aside.sidebar {
+                height: auto;
+                position: relative;
+                border-right: none;
+                border-bottom: 1px solid var(--border-glass);
+            }
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- SIDEBAR CONTROLS -->
+        <aside class="sidebar">
+            <div class="logo-section">
+                <div class="logo-icon">Re</div>
+                <div class="logo-title">
+                    <h1>ReAct Agent Lab</h1>
+                    <p>Student Analytics Suite</p>
+                </div>
+            </div>
+            
+            <!-- MODEL CONFIG -->
+            <div class="sidebar-section">
+                <h3>Select LLM Provider</h3>
+                <div class="select-wrapper">
+                    <select id="providerSelect" onchange="updateProviderStatus()">
+                        <option value="mock">✨ Mock Sim (Out-of-box)</option>
+                        <option value="openai">OpenAI GPT-4o</option>
+                        <option value="google">Google Gemini-1.5</option>
+                        <option value="local">Local GGUF (Phi-3)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="sidebar-section">
+                <div class="slider-header">
+                    <span>Reasoning Limit</span>
+                    <span id="maxStepsVal">5 steps</span>
+                </div>
+                <input type="range" id="maxStepsRange" min="2" max="10" value="5" oninput="document.getElementById('maxStepsVal').innerText = this.value + ' steps'">
+            </div>
+            
+            <!-- SYSTEM STATUS -->
+            <div class="sidebar-section" style="margin-top: auto;">
+                <h3>Telemetry Systems</h3>
+                <div class="provider-status-list">
+                    <div class="provider-status-item">
+                        <span class="provider-name-label">OpenAI Endpoint</span>
+                        <span class="status-dot" id="status-openai"></span>
+                    </div>
+                    <div class="provider-status-item">
+                        <span class="provider-name-label">Gemini Endpoint</span>
+                        <span class="status-dot" id="status-google"></span>
+                    </div>
+                    <div class="provider-status-item">
+                        <span class="provider-name-label">Local GGUF Engine</span>
+                        <span class="status-dot" id="status-local"></span>
+                    </div>
+                    <div class="provider-status-item">
+                        <span class="provider-name-label">Mock Simulator</span>
+                        <span class="status-dot active"></span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+        
+        <!-- MAIN WORKSPACE -->
+        <main class="main-content">
+            
+            <div class="welcome-header">
+                <h2>ReAct Agent Reasoning Workspace</h2>
+                <p>Monitor intermediate Thoughts, Actions, and CSV Database Observations dynamically.</p>
+            </div>
+            
+            <!-- QUICK START CHIPS -->
+            <div class="quick-chips-container">
+                <span>Quick Test Queries</span>
+                <div class="chips-list">
+                    <div class="chip" onclick="fillQuery('What are Alice Johnson\'s points?')">📊 Alice Johnson Points</div>
+                    <div class="chip" onclick="fillQuery('How many points did Karen Martinez get?')">⚛️ Karen Martinez Grade</div>
+                    <div class="chip" onclick="fillQuery('What are John Smith\'s points?')">⚠️ Ambiguous search: John Smith</div>
+                    <div class="chip" onclick="fillQuery('How many points did Sarah Johnson score?')">❌ Missing student: Sarah</div>
+                </div>
+            </div>
+            
+            <!-- INTERACTIVE CONSOLE -->
+            <div class="search-console">
+                <input type="text" id="queryInput" placeholder="Ask the ReAct agent a question (e.g. 'What is Charlie Brown\'s score in Physics?')..." onkeydown="if(event.key === 'Enter') executeAgentQuery()">
+                <button class="search-btn" onclick="executeAgentQuery()">
+                    <span>Query Agent</span>
+                    <span style="font-size: 1.1rem;">⚡</span>
+                </button>
+            </div>
+            
+            <!-- RESULT WORKSPACE GRID -->
+            <div class="workspace-grid">
+                
+                <!-- Timeline list of ReAct loop cards -->
+                <div class="response-container" id="responseContainer">
+                    <div class="empty-placeholder">
+                        <span class="empty-icon">🧠</span>
+                        <h3>Agent Workspace Ready</h3>
+                        <p>Select a quick-start chip or type a custom question to watch the agent perform CSV tools lookups.</p>
+                    </div>
+                </div>
+                
+                <!-- Performance telemetry trackers -->
+                <div class="telemetry-panel">
+                    <h3 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); font-weight: 700;">Live Session Telemetry</h3>
+                    
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-card-label">Execution Latency</span>
+                            <div class="metric-card-value" id="metric-latency">0<span>ms</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-card-label">Total Token Throughput</span>
+                            <div class="metric-card-value" id="metric-tokens">0<span>tokens</span></div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-card-label">Simulated API Charge</span>
+                            <div class="metric-card-value" style="color: var(--color-success);" id="metric-cost">$0.0000</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-card-label">Active Inference Engine</span>
+                            <div class="metric-card-value" style="font-size: 1rem; font-weight: 600;" id="metric-engine">MockReActProvider</div>
+                            <span style="font-size: 0.75rem; color: var(--text-muted); font-family: 'Fira Code', monospace; margin-top: 0.2rem;" id="metric-model">mock-phi3-gguf</span>
+                        </div>
+                    </div>
+                </div>
+                
+            </div>
+            
+        </main>
+        
+    </div>
+
+    <script>
+        // Check endpoint statuses on load
+        async function fetchSystemStatuses() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                // Update indicator status dots
+                updateStatusDot('status-openai', data.providers.openai.available);
+                updateStatusDot('status-google', data.providers.google.available);
+                updateStatusDot('status-local', data.providers.local.available);
+                
+                // Auto-suggest best available provider in select
+                const selectEl = document.getElementById('providerSelect');
+                if (data.providers.openai.available) {
+                    selectEl.value = 'openai';
+                } else if (data.providers.google.available) {
+                    selectEl.value = 'google';
+                } else {
+                    selectEl.value = 'mock';
+                }
+            } catch (err) {
+                console.error("Failed to fetch API status", err);
+            }
+        }
+
+        function updateStatusDot(elementId, available) {
+            const el = document.getElementById(elementId);
+            if (el) {
+                el.className = 'status-dot ' + (available ? 'active' : 'warning');
+            }
+        }
+
+        function updateProviderStatus() {
+            // Triggered on select change
+        }
+
+        function fillQuery(text) {
+            document.getElementById('queryInput').value = text;
+        }
+
+        async function executeAgentQuery() {
+            const query = document.getElementById('queryInput').value.trim();
+            if (!query) return;
+            
+            const provider = document.getElementById('providerSelect').value;
+            const maxSteps = parseInt(document.getElementById('maxStepsRange').value);
+            
+            const container = document.getElementById('responseContainer');
+            
+            // Render spinner state
+            container.innerHTML = `
+                <div class="agent-loader">
+                    <div class="spinner"></div>
+                    <p style="font-weight: 600;">Spawning ReAct Agent Thread...</p>
+                    <p style="font-size: 0.85rem; color: var(--text-dim);">Connecting to backend provider, running thought steps.</p>
+                </div>
+            `;
+            
+            const startTime = performance.now();
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        query: query,
+                        provider: provider,
+                        max_steps: maxSteps
+                    })
+                });
+                
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || "Server error occurred");
+                }
+                
+                const data = await response.json();
+                
+                // Clear container and render timeline cards
+                container.innerHTML = '';
+                
+                const timeline = document.createElement('div');
+                timeline.className = 'step-timeline';
+                
+                // Render intermediate thought steps
+                if (data.steps && data.steps.length > 0) {
+                    data.steps.forEach((step, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'step-card';
+                        
+                        // Card header
+                        const header = document.createElement('div');
+                        header.className = 'step-card-header';
+                        header.innerHTML = `
+                            <span class="step-badge">Step ${index + 1}</span>
+                            <span class="step-duration">Inference Action</span>
+                        `;
+                        card.appendChild(header);
+                        
+                        // Thought
+                        if (step.thought) {
+                            const thoughtBlock = document.createElement('div');
+                            thoughtBlock.className = 'thought-block';
+                            thoughtBlock.innerHTML = `
+                                <div class="thought-icon">💡</div>
+                                <div class="thought-text"><em>${step.thought}</em></div>
+                            `;
+                            card.appendChild(thoughtBlock);
+                        }
+                        
+                        // Action
+                        if (step.action) {
+                            const isParseError = step.action === 'PARSE_ERROR';
+                            const actionBlock = document.createElement('div');
+                            actionBlock.className = `action-block ${isParseError ? 'parse-error' : ''}`;
+                            actionBlock.innerHTML = `
+                                <div class="action-label ${isParseError ? 'parse-error' : ''}">
+                                    ${isParseError ? 'Format Parsing Error' : 'Selected CSV Tool Call'}
+                                </div>
+                                <div class="action-call ${isParseError ? 'parse-error' : ''}">${step.action}</div>
+                            `;
+                            card.appendChild(actionBlock);
+                        }
+                        
+                        // Observation
+                        if (step.observation) {
+                            const observationBlock = document.createElement('div');
+                            observationBlock.className = 'observation-block';
+                            observationBlock.innerHTML = `
+                                <div class="observation-label">Database CSV Output</div>
+                                <div class="observation-result">${step.observation}</div>
+                            `;
+                            card.appendChild(observationBlock);
+                        }
+                        
+                        timeline.appendChild(card);
+                    });
+                }
+                
+                // Render final response block
+                const finalCard = document.createElement('div');
+                finalCard.className = 'final-answer-card';
+                finalCard.innerHTML = `
+                    <div class="final-answer-header">
+                        <span>🎯</span>
+                        <span>Final Resolved Response</span>
+                    </div>
+                    <div class="final-answer-body">${data.response}</div>
+                `;
+                timeline.appendChild(finalCard);
+                
+                container.appendChild(timeline);
+                
+                // Update live telemetry statistics
+                document.getElementById('metric-latency').innerHTML = `${data.latency_ms}<span>ms</span>`;
+                
+                const tokens = data.usage.total_tokens;
+                document.getElementById('metric-tokens').innerHTML = `${tokens}<span>tokens</span>`;
+                
+                // Calculate dynamic model pricing
+                let cost = 0.0;
+                if (data.provider.toLowerCase().includes('openai')) {
+                    cost = (tokens / 1000) * 0.002; // GPT-4o estimate
+                } else if (data.provider.toLowerCase().includes('gemini') || data.provider.toLowerCase().includes('google')) {
+                    cost = (tokens / 1000) * 0.000075; // Gemini 1.5 estimate
+                }
+                document.getElementById('metric-cost').innerText = `$${cost.toFixed(5)}`;
+                
+                document.getElementById('metric-engine').innerText = data.provider;
+                document.getElementById('metric-model').innerText = data.model;
+                
+            } catch (err) {
+                container.innerHTML = `
+                    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 10px; padding: 2rem; color: #fca5a5;">
+                        <h3 style="font-weight: 700; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                            <span>⚠️</span> Query Failure
+                        </h3>
+                        <p>${err.message}</p>
+                        <p style="font-size: 0.8rem; color: #fca5a5; opacity: 0.7; margin-top: 1rem;">
+                            Note: If using OpenAI/Gemini providers, ensure your API keys are loaded into your workspace's .env file. Otherwise, select the "Mock Sim" from the sidebar for offline testing.
+                        </p>
+                    </div>
+                `;
+            }
+        }
+
+        // Initialize status and active connections
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchSystemStatuses();
+        });
+    </script>
+</body>
+</html>
