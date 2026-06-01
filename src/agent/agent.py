@@ -97,6 +97,13 @@ IMPORTANT:
                     system_prompt=self.get_system_prompt()
                 )
                 llm_output = response.get("content", "")
+
+                logger.log_event("LLM_RESPONSE", {
+                    "step": steps,
+                    "response_snippet": llm_output[:500],
+                    "usage": response.get("usage", {}),
+                    "latency_ms": response.get("latency_ms", 0)
+                })
                 
                 # Track tokens
                 usage = response.get("usage", {})
@@ -212,6 +219,10 @@ IMPORTANT:
             
             # Call tool
             result = tool_fn(**kwargs)
+
+            logger.log_event("RESULT", {
+                'result': result
+            })
             
             # Log tool execution
             logger.log_event("TOOL_EXECUTION", {

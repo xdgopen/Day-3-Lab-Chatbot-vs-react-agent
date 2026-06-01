@@ -807,7 +807,7 @@
         // Check endpoint statuses on load
         async function fetchSystemStatuses() {
             try {
-                const response = await fetch('/api/status');
+                const response = await fetch('http://127.0.0.1:8000/api/status');
                 const data = await response.json();
                 
                 // Update indicator status dots
@@ -822,7 +822,7 @@
                 } else if (data.providers.google.available) {
                     selectEl.value = 'google';
                 } else {
-                    selectEl.value = 'mock';
+                    selectEl.value = 'local';
                 }
             } catch (err) {
                 console.error("Failed to fetch API status", err);
@@ -865,7 +865,7 @@
             const startTime = performance.now();
             
             try {
-                const response = await fetch('/api/chat', {
+                const response = await fetch('http://127.0.0.1:8000/api/chat', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
